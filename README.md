@@ -24,5 +24,5 @@ Life is short, I love Python.
     If the implementation is easy to explain, it may be a good idea.
     Namespaces are one honking great idea -- let's do more of those!  
 >>>
-datetime:2019.2.25  15:25
+<br>                                                                                                     2019 年 2 月 25 日 
  
