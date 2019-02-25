@@ -1,7 +1,7 @@
 # python_study for Learning
 Life is short, I love Python.
 --
->>> `import` `this`
+/>/>/> `import` `this`
     The Zen of `Python`, by `Tim Peters`
   
     Beautiful is better than ugly.
