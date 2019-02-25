@@ -1,8 +1,8 @@
 # python_study for Learning
 Life is short, I love Python.
 --
-/>>> `import` `this`</br>
-    The Zen of `Python`, by `Tim Peters`
+>>> `import` `this`</br>
+    The Zen of `Python`, by `Tim` `Peters`
   
     Beautiful is better than ugly.
     Explicit is better than implicit.
