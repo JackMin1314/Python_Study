@@ -10,7 +10,7 @@ def shutdown(seconds):
     print("您的电脑将在: {} 关机".format(now_time1 + datetime.timedelta(seconds=seconds)))   # 时间增量seconds（minute，hour）
 
     try:
-       os.system("shutdown -s -t {}".format(seconds))
+       os.system("shutdown -s -t %d" % seconds)    # 格式化字符串，操作符%后面有空格，用seconds值代替%d
     except OSError:
        os.system("shutdown -a")
 
