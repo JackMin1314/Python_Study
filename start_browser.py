@@ -8,5 +8,5 @@ browser = webdriver.Chrome(executable_path = 'C:\Program Files (x86)\Google\Chro
 browser.get("http://www.baidu.com")# 访问某个网站
 
 endtime = datetime.datetime.now()# 获取当前时间
-alter = starttime-endtime
+alter = starttime - endtime
 print(alter.total_seconds())# 启动并访问用时（秒）
