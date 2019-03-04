@@ -1,54 +1,115 @@
-from lxml import etree
-import requests     # 网络请求
+# -*- coding: utf-8 -*-
+# @Time    : 2019/3/3
+# @Author  : 陈王
+# @FileName: my_spider.py
+# @Software: windows、Pycharm、Python3
+
+import requests
 import random
-import bs4
+from bs4 import BeautifulSoup
 import time
+import datetime
+import json
+from docx import Document
+from docx.shared import Inches
+
+
+# import jsonpath
+# from lxml import etree      # 使用xpath,后面发现用不了！
 # urls = 'https://dyn.ithome.com/comment/411836'    # 仅独立的评论页面
+# 感谢https://blog.csdn.net/AmazingUU/article/details/83043592
+# https://blog.csdn.net/qq_17271589/article/details/80398283 给予的帮助。
 
 '''
     https://dyn.ithome.com/ithome/getajaxdata.aspx 通过 ajax 来动态加载内容
     肯定文章 url 不变，getajaxdata.aspx 用来获取评论的，因而内部指向了 Referer: https://dyn.ithome.com/comment/411836
     通过多个 getajaxdata.aspx 的 From Data 可看到请求页面page=1,2,...
-    总评论数正文下方有 //*[@id="commentcount"]
+    总评论数在正文标题下方有 //*[@id="commentcount"]
     某条的评论内容 //*[@id="ulcommentlist"]/div[1]/li[1]/div[2]/div[2]/p/text()   xpath路径   
+    //ul[@class="list hot"]//li[@class="entry"]//div[@class="fodiv"]//div//p    chropath自己找的路径
     
 '''
+url = "https://www.ithome.com/0/411/836.htm"        # 【添加要爬取的某个热点话题链接】
+news_id = url[24:-4].replace('/', '')    # 从url构造获取NewsId
+url = 'https://dyn.ithome.com/comment/{}'.format(news_id)  # 构造评论页面url
+urls = 'https://dyn.ithome.com/ithome/getajaxdata.aspx'    # 根据对应url获取newsID，再将newsID和type数据post给接口（该url）获取返回的热评数据
+file = Document()            # 用时间命名
+file.add_heading(u'{}'.format(url)+'的爬取结果', 0)
 
-url = "https://www.ithome.com/0/411/836.htm"
-news_id = url[24:-4].replace('/', '')
-print(news_id)
-
-page_start = 1
 user_agent_list = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36",
     "Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.5; AOLBuild 4337.35; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
     "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
     "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
     "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
     ]
+
 ua = random.choice(user_agent_list)    # 随机从代理池选择
-data = {
-    'hash': '62DB0D67CE5B027D',
-    'type': 'commentpage',
-    'page': '1',
-    'newsID': '411836',
-    'User-agent': ua
-}       # 构造data
+headers = {'User-agent': ua}        # 构造headers,代理
+print('这个是您选择的代理：'+ua)
+
+response = requests.post(url)
+myhash = response.text[response.text.find('ch11 = '):-1]
+myhash = myhash[8: myhash.find(';')-1]      # 从返回的text文本中提取hash
+
+page_start = 1
+# data = {
+#
+#     'newsID': news_id,
+#     'hash': myhash,
+#     'pid': 1,
+#     'type': 'hotcomment',
+#     'page': 1
+#
+# }       # 构造data
+
+data_hot = {
+
+    'newsID': news_id,
+    'pid': 0,
+    'type': 'hotcomment',
+}  # 构造data
+
+item = {}
+def crazy_spider(url):
+    data = {
+        'newsID': news_id,
+        'hash': myhash,
+        'pid': 1,
+        'type': 'commentpage',
+        'page': str(page),
+        'order': 'false'
+    }  # 构造data
+
+    response = requests.post(urls, headers=headers, data=data)
+    print("当前链接状态：{}".format(response.status_code))
+
+    content = response.text  # content是 str类型
+    #html = json.loads(content)['html']  # json 化，自动优化（包括去掉字符串转义，更像html）html已经是dict,里面html（key）的值（value）
+
+    soup = BeautifulSoup(content, 'html.parser')  # xpath拿不到数据？因为返回的格式是json！(ajax不能使用xpath直接拿标签)
+    li_list = soup.find_all('li', class_='entry')
+    # response.text用json.loads()格式化，并取出html，最后再用BeautifulSoup()格式化一下，评论的各个数据就很容易取出来
+    if li_list is None:
+        print("未解析到数据！")
+        exit()
+
+    for li in li_list:
+        # 分析html源码，取出热评对应数据
+        item['用户名'] = li.find('span', class_='nick').text
+        item['时间'] = li.find('span', class_='posandtime').text.split('\xa0')[1]
+        item['评论'] = li.find('p').text
+        print(item)
 
 for page in range(page_start, page_start + 11):
-    data['page'] = str(page)
+    # 这里可以控制爬多少。
+    # js前端用字符串？
+
     try:
-        r = requests.post('https://dyn.ithome.com/ithome/getajaxdata.aspx', data=data)
-        print(r)
-        r.encoding = r.apparent_encoding
-
-        # ?????
-
+        crazy_spider(url)
     except:
         print("Post请求失败！")
-        exit()
-    time.sleep(1)
-print(r)
-# response = requests.get(urls)
-# print(response.status_code)
-# print(response.content)
+    time.sleep(random.randint(3, 5))        # 控制爬取间隔时间，反爬
+
 print("ok")
+
