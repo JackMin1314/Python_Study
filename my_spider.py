@@ -30,7 +30,7 @@ from docx.shared import Inches
     //ul[@class="list hot"]//li[@class="entry"]//div[@class="fodiv"]//div//p    chropath自己找的路径
     
 '''
-url = "https://www.ithome.com/0/412/557.htm"        # 【添加要爬取的某个热点话题链接】
+url = "https://www.ithome.com/0/417/888.htm"        # 【添加要爬取的某个热点话题链接】
 news_id = url[24:-4].replace('/', '')    # 从url构造获取NewsId
 url = 'https://dyn.ithome.com/comment/{}'.format(news_id)  # 构造评论页面url
 urls = 'https://dyn.ithome.com/ithome/getajaxdata.aspx'    # 根据对应url获取newsID，再将newsID和type数据post给接口（该url）获取返回的热评数据
@@ -70,8 +70,10 @@ data_hot = {
     'pid': 0,
     'type': 'hotcomment',
 }  # 构造data
-hideword = ["可以", "一楼"]       # 添加过滤关键字例如：hideword = ["傻逼", "sb", "儿子"]
+commentstr=''
+hideword = ['耍','厚道','雷老板','牛叉',"打工嫌累","可以", "一楼"]       # 添加过滤关键字例如：hideword = ["傻逼", "sb", "儿子"]
 item = {}
+commentlist = []
 def crazy_spider(url):
     data = {
         'newsID': news_id,
@@ -101,18 +103,37 @@ def crazy_spider(url):
        # item['时间'] = li.find('span', class_='posandtime').text.split('\xa0')[1]
         item['评论'] = li.find('p').text
         mystr = li.find('p').text
-        if(mystr not in hideword):
+        # mystr = mystr.decode('UTF-8')
+        # commentstr =commentstr.append(mystr)
+        # commentlist.append(li.find('p').get_text())
+        flag = 1
+        for i in hideword:
+            if mystr.find(i)!=-1:
+                flag =0;break;
+            else:
+                flag=1;continue;
+        if(flag==1):
+            # commentstr+=mystr
             print(mystr)
-
+            commentlist.append(mystr)
+t=0;
 for page in range(page_start, page_start + 11):
     # 这里可以控制爬多少。
     # js前端用字符串？
-
     try:
         crazy_spider(url)
     except:
-        print("Post请求失败！")
+         print("Post请求失败！")
+         t=t+1
     time.sleep(random.randint(3, 5))        # 控制爬取间隔时间，反爬
+    if(t==2):       # 超时结束或者评论爬取完毕
+        break;
 
 print("ok")
+print('*'*13)
+print(commentlist)
 
+file=open('data.txt', 'w', encoding="utf-8")        # 打开格式为utf-8.垃圾Windows默认打开gbk格式。
+for line in commentlist:
+    file.write(line+'\n')
+file.close()
