@@ -187,8 +187,8 @@ def wb_save(commentlist):
     file.close()
 
 if __name__=='__main__':
-    username = '17718261816'
-    password = '5201020116'
+    username = '*****'
+    password = '*****'
     url = "https://m.weibo.cn/7071727554/4359377735391187"
     login_url = 'https://passport.weibo.cn/signin/login'  # 登录页面
     login_goto_url = 'https://passport.weibo.cn/sso/login'  # 使用login_url后获取其cookie。然后在访问http://.../sso/login用post输入用户名，密码明文作为data参数传递
