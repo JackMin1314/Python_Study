@@ -144,14 +144,15 @@ def wb_spider(detail_id, newcomment_url, username, password):
     session = requests.session()
     login_goto_response = session.post(url=login_goto_url, headers=login_goto_headers, data=login_goto_data)       # 模拟登录成功页面,局部变量？函数调用结束，会导致回话结束吗？
     result = session.get(url=newcomment_url, headers=header, data=data)
-    print(result.url)
-    print(result)
+    # print(result.url)
+    # print(result)
     print(result.text)
     html = json.loads(result.text)
     print(html)
     t=0
     if html['ok']==0:
         print('数据已缓存')
+        max_id=0
     else:
         max_id=html['data']['max_id']       # 获取到max_id
         print(html['data']['max_id'])
@@ -159,9 +160,20 @@ def wb_spider(detail_id, newcomment_url, username, password):
         try:
             for i in range(20):
                 str = html['data']['data'][i]['text']
-                str = str[0:(str.find('<span'))]
-                commentlist.append(str + '\n')
-                print(html['data']['data'][i]['text'])
+                str1 = str[0:(str.find('<span'))]
+                flag = 1
+                for j in hideword:
+                    if str1.find(j) != -1:
+                        flag = 0;
+                        break;
+                    else:
+                        flag = 1;
+                        continue;
+                if (flag == 1):
+                    str1 = str1[0:(str.find('<a'))]
+                    print(str1)
+                    commentlist.append(str1+'\n')
+
         except:
             t=2
             print("本页评论少于20条,爬取完毕")
@@ -169,18 +181,20 @@ def wb_spider(detail_id, newcomment_url, username, password):
         print("数据已缓存")
     return max_id, t
 
-def ctl_wb_spider(page_start,page_end,detail_id,max_id,username, password):
+def ctl_wb_spider(page_start,page_end,detail_id,max_id1,username, password):
     t=0;
+    max_id=max_id1
     for page in range(page_start, page_end):
         # 这里可以控制爬多少。js前端用字符串？
         newcomment_url='https://m.weibo.cn/comments/hotflow?id={}&mid={}&max_id={}&max_id_type=0'.format(detail_id, detail_id,max_id)
-        # try:
-        max_id,t1 = wb_spider(detail_id, newcomment_url, username, password)
-        #     if (t1 == 2):
-        #         t = 2
-        # except:
-        #     print("Post请求失败！")
-        #     t = t + 1
+        try:
+            md,t1 = wb_spider(detail_id, newcomment_url, username, password)
+            if (t1 == 2):
+                t = 2
+        except:
+            print("Post请求失败！")
+            t = t + 1
+        max_id = md
         if (t == 2):  # 超时结束或者评论爬取完毕
             break;
         time.sleep(random.randint(2, 4))  # 控制爬取间隔时间，反爬
@@ -188,20 +202,25 @@ def ctl_wb_spider(page_start,page_end,detail_id,max_id,username, password):
 def wb_save(commentlist):
     file=open('weibo_data.txt', 'w', encoding="utf-8")        # 打开格式为utf-8.垃圾Windows默认打开gbk格式。
     for line in commentlist:
+        line =line.strip()
+        if line:
+            line = line+'\n'
         file.write(line)
     file.close()
 
 if __name__=='__main__':
-    username = '*******'
-    password = '*******'
-    url = "https://m.weibo.cn/7071727554/4359377735391187"
+    username = '******'
+    password = '********'
+    url = "https://m.weibo.cn/7071727554/4359821799321366"
     login_url = 'https://passport.weibo.cn/signin/login'  # 登录页面
     login_goto_url = 'https://passport.weibo.cn/sso/login'  # 使用login_url后获取其cookie。然后在访问http://.../sso/login用post输入用户名，密码明文作为data参数传递
     url, detail_id = wb_urlneat(url)
     comment_url = 'https://m.weibo.cn/comments/hotflow?id={}&mid={}&max_id_type=0'.format(detail_id, detail_id)
+    hideword=["半夜", '台湾', '踹你一脚', '纯粹']
     commentlist = []
     page_start=1        # 爬取第一个页面
     page_end=5          # 爬取最后一个页面（由总评论可以计算，为了方便人为规定）
-    session,cookies,max_id=wb_details(comment_url,detail_id, url)
-    ctl_wb_spider(page_start,page_end+1,detail_id,max_id,username, password)
+    max_id1=0
+    session,cookies,max_id1=wb_details(comment_url,detail_id, url)
+    ctl_wb_spider(page_start,page_end+1,detail_id,max_id1,username, password)
     wb_save(commentlist)
