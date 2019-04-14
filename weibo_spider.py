@@ -84,8 +84,10 @@ def wb_details(comment_url,detail_id,url):
             for i in range(20):
                 print(html['data']['data'][i]['text'])
                 str=html['data']['data'][i]['text']
-                str = str[0:(str.find('<span'))]
-                commentlist.append(str + '\n')
+                p = re.compile('<[^>]+>')
+                str1 = p.sub("", str)
+                print(str1)
+                commentlist.append(str1 + '\n')
         except:
             print("本页评论少于20条")
     else:
@@ -146,21 +148,24 @@ def wb_spider(detail_id, newcomment_url, username, password):
     result = session.get(url=newcomment_url, headers=header, data=data)
     # print(result.url)
     # print(result)
-    print(result.text)
+    # print(result.text)
     html = json.loads(result.text)
-    print(html)
+    # print(html)
     t=0
     if html['ok']==0:
         print('数据已缓存')
         max_id=0
     else:
         max_id=html['data']['max_id']       # 获取到max_id
-        print(html['data']['max_id'])
+        # print(html['data']['max_id'])
     if(html['ok']!=0):
         try:
             for i in range(20):
                 str = html['data']['data'][i]['text']
-                str1 = str[0:(str.find('<span'))]
+                # str1 = str[0:(str.find('<span'))]
+                p = re.compile('<[^>]+>')
+                str1 = p.sub("", str)
+                print(str1)
                 flag = 1
                 for j in hideword:
                     if str1.find(j) != -1:
@@ -170,7 +175,7 @@ def wb_spider(detail_id, newcomment_url, username, password):
                         flag = 1;
                         continue;
                 if (flag == 1):
-                    str1 = str1[0:(str.find('<a'))]
+                    # str1 = str1[0:(str.find('<a'))]
                     print(str1)
                     commentlist.append(str1+'\n')
 
@@ -209,14 +214,14 @@ def wb_save(commentlist):
     file.close()
 
 if __name__=='__main__':
-    username = '******'
-    password = '********'
+    username = '*******'
+    password = '*******'
     url = "https://m.weibo.cn/7071727554/4359821799321366"
     login_url = 'https://passport.weibo.cn/signin/login'  # 登录页面
     login_goto_url = 'https://passport.weibo.cn/sso/login'  # 使用login_url后获取其cookie。然后在访问http://.../sso/login用post输入用户名，密码明文作为data参数传递
     url, detail_id = wb_urlneat(url)
     comment_url = 'https://m.weibo.cn/comments/hotflow?id={}&mid={}&max_id_type=0'.format(detail_id, detail_id)
-    hideword=["半夜", '台湾', '踹你一脚', '纯粹']
+    hideword=["半夜", "台湾", "踹你一脚", "纯粹"]
     commentlist = []
     page_start=1        # 爬取第一个页面
     page_end=5          # 爬取最后一个页面（由总评论可以计算，为了方便人为规定）
