@@ -14,7 +14,6 @@ my_friend = bot.friends().search('null')[0]
 print(my_friend)
 
 
-
 @bot.register(my_friend)
 def reply_myfriend(msg):
 
@@ -44,9 +43,9 @@ def reply_myfriend(msg):
             if('weibo' in msg.text):
                 ua = random.choice(weibo_reply_list)
                 my_friend.send(ua)
-                weibo.username = '********'
-                weibo.password = '*******'
-                weibo.url = "https://m.weibo.cn/7071727554/4359821799321366"
+                weibo.username = '******'
+                weibo.password = '******'
+                weibo.url = msg.text
                 weibo.login_url = 'https://passport.weibo.cn/signin/login'  # 登录页面
                 weibo.login_goto_url = 'https://passport.weibo.cn/sso/login'  # 使用login_url后获取其cookie。然后在访问http://.../sso/login用post输入用户名，密码明文作为data参数传递
                 weibo.url, weibo.detail_id = weibo.wb_urlneat(weibo.url)
