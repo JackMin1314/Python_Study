@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--这里是从网上获取jQuery框架-->
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+
+    <!--jinja2模板引擎支持for，if等控制，条件语句实现动态修改页面-->
+    {% if title %}
+    <title> 欢迎{{title}}</title>
+    {% else %}
+    <title> 登录页面</title>
+    {% endif %}
+
+    <!--这里是请求login_style.css样式文件，浏览器在解析字符串到这里的时候会自动向服务器(url_for是反转函数直接得到文件地址)请求页面，然后渲染。这里的渲染不是jinja2引擎做的，而是浏览器本身-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='login_style.css') }}" />
+</head>
+<body>
+<h1>Welcome to login !</h1>
+    <!--这里是请求mylogin.js文件，浏览器解析到这里时会自动请求服务器获取.js文件并加载，这样就会认得下面的ajaxAlert函数-->
+<script crossorigin="anonymous" type="application/javascript" src="{{ url_for('static', filename='mylogin.js') }}"></script>
+<p id="demo">为了进行web接口压测，学习flask顺带玩了js和css</p>
+<!--这里真正的调用了服务器传递过来的js文件里的ajaxAlert函数，innerHTML是立即修改当前的页面内容-->
+<button type="button" onclick='document.getElementById("demo").innerHTML = "其乐亦无穷也~";ajaxAlert(location.pathname.slice(7,-5))'>
+    click me!
+</button>
+</body>
+</html>
